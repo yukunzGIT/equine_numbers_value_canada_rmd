@@ -1,11 +1,18 @@
 ---
 title: "Historical horse population in Canada"
-output: github_document
+output: 
+  html_document:
+    toc: TRUE
+bibliography: References.bib
+params: 
+  province: "British Columbia"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
+library(knitr)
+library(kableExtra)
 ```
 
 ## Aim
@@ -30,7 +37,7 @@ Horse population data were sourced from the [Government of Canada's Open Data we
 
 ## Methods
 
-The R programming language and the following R packages were used to perform the analysis: knitr and tidyverse. The code used to perform the analysis and create this report can be found here: https://github.com/ttimbers/equine_numbers_value_canada_rmd.
+The R programming language and the following R packages were used to perform the analysis: knitr and tidyverse [@tidy]. The code used to perform the analysis and create this report can be found here: https://github.com/ttimbers/equine_numbers_value_canada_rmd.
 
 
 ## Results
@@ -52,7 +59,7 @@ We can see from the visualisation above that Ontario, Saskatchewan and Alberta h
 populations since 1940. This is likely due to the rebound of the Canadian automotive
 industry after the Great Depression and the Second World War. An interesting follow-up visualization would be car sales per year for each Province over the time period visualised above to further support this hypothesis. 
 
-Next we look at the range of the number horses for each provinces at any time point between 1940 - 1972:
+Next we look at the range of the number horses for each provinces at any time point between `r min(horse_pop$Ref_Date)` and `r max(horse_pop$Ref_Date)`:
 
 ```{r max horse table}
 max_horses <- horse_pop %>% 
@@ -61,14 +68,15 @@ max_horses <- horse_pop %>%
   group_by(Province) %>% 
   summarize(Maximum = max(Value),
             Minimum = min(Value))
-max_horses
+knitr::kable(max_horses, caption = "Table.1 Hourse population in Canada") |> 
+  kableExtra::kable_styling(full_width = FALSE)
 ```
 
-Below we zoom in and look at the province of Alberta:
+Below we zoom in and look at the province of `r params$province`:
 
-```{r plot province, fig.width=5, fig.height=4}
+```{r plot province, fig.align='center', fig.cap="Figure.2 Provinces", fig.height=4, fig.width=5, message=FALSE, warning=FALSE}
 province_plot <- horse_pop %>% 
-  filter(GEO == "Alberta") %>% 
+  filter(GEO == params$province) %>% 
   ggplot(aes(x = Ref_Date, y = Value)) +
   geom_point() +
   geom_line() +
@@ -79,4 +87,18 @@ province_plot <- horse_pop %>%
   scale_y_continuous(labels = scales::comma) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 province_plot
+
+ggsave("province_plot.png")
+
 ```
+## Reading an existing plot
+```{r out.height='200px', out.width='200px'}
+knitr::include_graphics("province_plot.png")
+```
+
+## Notes
+Rscript -e "rmarkdown::render('doc/hist_horse_pop.Rmd', output_format = 'pdf_document', params = list(province = 'Alberta'))"
+
+
+## References
+
